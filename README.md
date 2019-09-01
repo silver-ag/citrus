@@ -1,10 +1,10 @@
 # Citrus
 
 It's basically racket, with a few changes:
-- '|' syntax
+- `|` syntax
 - strings are lists
 - modified output functions
-### '|' Syntax
+### `|` Syntax
 This is by far the most important change from racket. Fairly often in lisp/schemes, you find yourself closing a lot of brackets at once:
 ```
 (define (fib n (a 0) (b 1))
@@ -12,7 +12,7 @@ This is by far the most important change from racket. Fairly often in lisp/schem
       1
       (+ a (fib (- n 1) b (+ a b)))))
 ```
-You may notice that you only have to close more than one bracket at a time if the last element of a list is itself a list. In Citrus, '|' is like '(' except that it indicates that the list you're opening is the last element of the list it's part of, and so it will be automatically closed at the same time:
+You may notice that you only have to close more than one bracket at a time if the last element of a list is itself a list. In Citrus, `|` is like `(` except that it indicates that the list you're opening is the last element of the list it's part of, and so it will be automatically closed at the same time:
 ```
 (define (fib n (a 0) |b 1)
   |if (< n 2)
