@@ -1,8 +1,12 @@
 #lang brag
-citrus-program: (ct-number | ct-symbol | ct-list | ct-id )*
-ct-list: QUOTED-STRING | "(" (ct-number | ct-symbol | ct-list | ct-id)* (ct-final-list | ct-final-id-list | ")")
-ct-final-list: "|" (ct-number | ct-symbol | ct-list | ct-id)* (ct-final-list | ct-final-id-list | ")")
-ct-id: "'" (ct-list | ct-number | ct-symbol | ct-id)
-ct-final-id-list: "'" "|" (ct-number | ct-symbol | ct-list | ct-id)* (ct-final-list | ct-final-id-list | ")")
+ct-program: (whitespace* ct-expression*)* whitespace*
+ct-expression: (ct-list | atom | ("'" | "`" | ",") ct-expression)  [("[" ct-expression "]")*]
+ct-list: QUOTED-STRING | "(" (whitespace* ct-expression*)* whitespace* [ct-final-list] ")"
+ct-final-list: "|" (whitespace* ct-expression*)* whitespace* [ct-final-list]
+atom: lang-block-cont | lang-block | ct-char | ct-symbol | ct-number | ct-expression
+lang-block: ct-expression ":" lang-block-cont
+lang-block-cont: LANG-BLOCK-CONTENT
 ct-number: NUMBER
+ct-char: CHAR
 ct-symbol: SYMBOL
+whitespace: WHITESPACE
