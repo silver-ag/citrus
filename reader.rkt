@@ -4,14 +4,14 @@
 
 (define (read-syntax path port)
   (define parse-tree (parse path (make-tokeniser port)))
-  (define module-datum `(module bf-mod "expander.rkt"
+  (define module-datum `(module ct-mod "expander.rkt"
                           ,parse-tree))
   (datum->syntax #f module-datum))
 (provide read-syntax)
 
 (define (make-tokeniser port)
   (define (next-token)
-    (define bf-lexer
+    (define ct-lexer
       (lexer
        [(concatenation ";" (repetition 0 +inf.0 (char-complement "\n")) "\n") (next-token)]
        [(concatenation "\"" (repetition 0 +inf.0 (union (char-complement "\"") (concatenation "\\" (union "\"" "\\")))) "\"")
@@ -32,6 +32,6 @@
        [(char-set "\n\t ")
         (token 'WHITESPACE lexeme)]
        [any-char lexeme]))
-    (bf-lexer port))  
+    (ct-lexer port))  
   next-token)
 
