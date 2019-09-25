@@ -48,19 +48,11 @@ as shown at the end of each section, all of these are transformed into more verb
 ## General Docs
 In a note format for now:
 
-character literals are written like so:
-
- `#c`
-
- where `c` is:
-
-  a single character -> that literal character
-
-  `\n` or `\t` -> newline or tab
-
-  `space` -> a literal space character
-
-  `\x` followed by two hex digits -> the character corresponding to that ascii code
+character literals are written `#c`, where `c` is:
+- a single character -> that literal character
+- `\n` or `\t` -> newline or tab
+- `space` -> a literal space character
+- `\x` followed by two hex digits -> the character corresponding to that ascii code
 
 
 rather than `(list-ref list index)`, citrus has `(ref index list)`. in general citrus tries to put indices before the thing they point into, because they're likely to be smaller and simpler and it feels easier to make sense of.
@@ -72,6 +64,7 @@ rather than `(list-ref list index)`, citrus has `(ref index list)`. in general c
 - decide what we can import from racket
 - write things we can't
   - includes write, print, display, printf, pretty much anything that gives output really
+- working repl (default #%top-interaction uses racket syntax)
 - if the racket macro system can't be imported, write one
 - if the racket require form can't be imported, write one
 - implement first-class language objects and (apply-lang)
@@ -80,7 +73,7 @@ rather than `(list-ref list index)`, citrus has `(ref index list)`. in general c
 
 whenever:
 - optimise expander, in particular figure out which recursive (ct-module-special-form) calls aren't actually needed (like in (atom), probably)
-
+- make an editor that supports | in bracket matching? or at least a slightly better syntax highlighter for drracket.
 
 
 1: specifically, it's mostly racket
