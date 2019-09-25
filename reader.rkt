@@ -1,11 +1,12 @@
 #lang br
+
 (require brag/support)
 (require "parser.rkt")
 
 (define (read-syntax path port)
   (define parse-tree (parse path (make-tokeniser port)))
-  (define module-datum `(module ct-mod "expander.rkt"
-                          ,parse-tree))
+  (define module-datum `(module ct-mod citrus/expander
+                        ,parse-tree))
   (datum->syntax #f module-datum))
 (provide read-syntax)
 
@@ -34,4 +35,3 @@
        [any-char lexeme]))
     (ct-lexer port))  
   next-token)
-

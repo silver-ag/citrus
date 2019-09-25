@@ -7,7 +7,9 @@
   ;(write normalised-parse-tree)
   #`#,normalised-parse-tree)
 (provide (rename-out [ct-module-begin #%module-begin]))
-         
+
+;; functions for normalising special forms
+
 (define-for-syntax (ct-special-forms parse-tree)
   (if (list? parse-tree)
       (filter (λ (in) (not (equal? in 'whitespace)))
@@ -80,6 +82,14 @@
     [(eq? (string-length char-code) 1) (string-ref char-code 0)]
     [else (error (format "not a valid character: #~a" char-code))]))
 
+;; define new #%top-interaction
+
+(define-syntax (ct-top-interaction parse-tree)
+  (define normalised-parse-tree (ct-special-forms (syntax->datum parse-tree)))
+  (write parse-tree)
+  #`#,normalised-parse-tree)
+(provide (rename-out [ct-top-interaction #%top-interaction]))
+  
 
 (provide #%top #%app #%datum) ;; rackets #%top-interaction is racket syntax, need to make one that parses to citrus first
 (require "definitions.rkt")
