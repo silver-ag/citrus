@@ -23,7 +23,7 @@
        args))
 
 (define (ct-print #:out (out (current-output-port)) . args)
-  ;; takes any number of expressions and writes them. optional #:out argument specifies output port 
+  ;; takes any number of expressions and prints them. optional #:out argument specifies output port 
   (map (λ (arg)
          (define processed (if ((listof char?) arg)
                                (list->string arg)
