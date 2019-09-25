@@ -74,10 +74,6 @@
     [else (error (format "not a valid character: #~a" char-code))]))
 
 
-
-(define (ref n l)
-  (list-ref l n))
-
-(provide begin list quote #%top #%app #%datum) ;; rackets #%top-interaction is racket syntax, need to make one that parses to citrus first
-(provide write quasiquote unquote cons +) ;; note - need to make our own display functions, to deal with strings and to print #char instead of #\char and such
-(provide ref)
+(provide #%top #%app #%datum) ;; rackets #%top-interaction is racket syntax, need to make one that parses to citrus first
+(require "definitions.rkt")
+(provide (all-from-out "definitions.rkt"))

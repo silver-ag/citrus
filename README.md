@@ -65,6 +65,7 @@ character literals are written like so:
 
 rather than `(list-ref list index)`, citrus has `(ref index list)`. in general citrus tries to put indices before the thing they point into, because they're likely to be smaller and simpler and it feels easier to make sense of.
 
+`(write)`, `(display)` and `(print)` are modified to take any number of arguments to output and an optional #:out output port argument
 
 ## Roadmap
 
