@@ -1,6 +1,8 @@
 
 # Citrus
 
+[not in a usable state yet]
+
 Citrus is a lisp<sup>1</sup> with more syntax. It's also a programming language programming language.
 It implements the following syntax on top of the usual s-expressions and 'quote `quasiquote ,unquote abbreviations:
 
@@ -66,7 +68,6 @@ rather than `(list-ref list index)`, citrus has `(ref index list)`. in general c
 
 ## Roadmap
 
-- add quasi- and unquote
 - decide what we can import from racket
 - write things we can't
   - includes write, print, display, printf, pretty much anything that gives output really
