@@ -37,10 +37,18 @@
 (define (ref n l)
   (list-ref l n))
 
+(define (ct-drop n lst)
+  (drop lst n))
+
+(define (ct-take n lst)
+  (take lst n))
+
 ;; override racket definitions
 (provide (rename-out (ct-display display)
                      (ct-write write)
-                     (ct-print print)))
+                     (ct-print print)
+
+                     (ct-drop drop)))
 ;; things that aren't already defined
 (provide ref)       ;; this is used in the normalisation of (1 2 3)[n], be careful changing how it works
 ;; things provided through from racket

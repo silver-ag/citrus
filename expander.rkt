@@ -39,7 +39,14 @@
                                (cons 'list (second dtm))))) ;; QUOTED-STRING -> (char1 ... charn)
 
 (define-for-syntax (ct-final-list dtm)
-  (ct-special-forms (drop dtm 2))) ;; (ct-final-list "|" expr1 ... exprn) -> (expr1 ... exprn)
+  (cond
+    [(equal? (second dtm) "'") ;; 'expr -> (quote expr)
+     (cons 'quote (list (ct-special-forms (cons (first dtm) (drop dtm 2)))))]
+    [(equal? (second dtm) "`") ;; `expr -> (quasiquote expr)
+     (cons 'quasiquote (list (ct-special-forms (cons (first dtm) (drop dtm 2)))))]
+    [(equal? (second dtm) ",") ;; ,expr -> (unquote expr)
+     (cons 'unquote (list (ct-special-forms (cons (first dtm) (drop dtm 2)))))]
+    [else (ct-special-forms (drop dtm 2))])) ;; (ct-final-list "|" expr1 ... exprn) -> (expr1 ... exprn)
 
 (define-for-syntax (ct-expression dtm)
   (cond
@@ -47,7 +54,7 @@
      `(ref ,(ct-special-forms (list-ref dtm (- (length dtm) 2)))
            ,(ct-special-forms (drop-right dtm 3)))]
     [(equal? (second dtm) "'") ;; 'expr -> (quote expr)
-     `(quote ,(ct-special-forms (cons (first dtm) (drop dtm 2))))]
+     (cons 'quote (list (ct-special-forms (cons (first dtm) (drop dtm 2)))))]
     [(equal? (second dtm) "`") ;; `expr -> (quasiquote expr)
      (cons 'quasiquote (list (ct-special-forms (cons (first dtm) (drop dtm 2)))))]
     [(equal? (second dtm) ",") ;; ,expr -> (unquote expr)

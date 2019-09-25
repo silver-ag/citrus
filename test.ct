@@ -1,4 +1,4 @@
 #lang reader "reader.rkt"
 
 
-(display "hello: " |cons #\x61 `(1 ,(list 2 3 4) 5)[1])
+(display (drop 1 "hello: ") |cons #\x61 `(1 ,|list 2 3 4 5)[1])
