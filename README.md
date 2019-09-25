@@ -21,10 +21,10 @@ If you do, then you don't have to explicitly close it - it closes automatically 
 tired of typing `(list-ref (list-ref (list-ref l 1) 3) (+ n 2))`?<sup>2</sup> citrus allows the traditional array accessor `[n]` to work on lists: `l[1][3][(+ n 2)]`
 
 ```
-(list 1 2 3)[1] -> (ref (list 1 2 3) 1)
+(list 1 2 3)[1] -> (ref 1 (list 1 2 3))
 
 ```
-for the avoidance of doubt, `'(a b c)[1]` normalises to `(ref (quote (a b c) 1))`, not `(quote (ref a b c) 1)`, and `'(a (b c d) e)[1][2]` normalises to `(ref 2 (ref 1 (quote (a (b c d) e))))`
+for the avoidance of doubt, `'(a b c)[1]` normalises to `(ref 1 (quote (a b c)))`, not `(quote (ref 1 (a b c))`, and `'(a (b c d) e)[1][2]` normalises to `(ref 2 (ref 1 (quote (a (b c d) e))))`
 
 ### `:{lang ... lang}` sublanguage blocks<sup>3</sup>
 remember how citrus is a programming language programming language? You can embed different languages' source in citrus code<sup>4</sup>. langauges are a type, so you can (will be able to) do things like
