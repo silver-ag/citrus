@@ -32,6 +32,7 @@
                parse-tree))
       parse-tree))
 
+
 (define-for-syntax (ct-program dtm)
   (ct-special-forms (cons 'begin (drop dtm 1)))) ;; expr1 ... exprn -> (begin expr1 ... exprn)
 
@@ -67,7 +68,10 @@
   (ct-special-forms (second dtm))) ;; (atom expr) -> expr
 
 (define-for-syntax (ct-symbol dtm)
-  (string->symbol (second dtm)))
+  (case (second dtm)
+    [("true") #t]
+    [("false") #f]
+    [else (string->symbol (second dtm))]))
 
 (define-for-syntax (ct-number dtm)
   (string->number (second dtm)))
@@ -82,15 +86,6 @@
     [(eq? (string-length char-code) 1) (string-ref char-code 0)]
     [else (error (format "not a valid character: #~a" char-code))]))
 
-;; define new #%top-interaction
-
-(define-syntax (ct-top-interaction parse-tree)
-  (define normalised-parse-tree (ct-special-forms (syntax->datum parse-tree)))
-  (write parse-tree)
-  #`#,normalised-parse-tree)
-(provide (rename-out [ct-top-interaction #%top-interaction]))
-  
-
-(provide #%top #%app #%datum) ;; rackets #%top-interaction is racket syntax, need to make one that parses to citrus first
+(provide #%top #%app #%datum) ;; #%top-interaction isn't happening, drracket repl window enforces racket syntax wrt not sending until |s match up
 (require "definitions.rkt")
 (provide (all-from-out "definitions.rkt"))

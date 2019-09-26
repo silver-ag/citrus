@@ -1,4 +1,9 @@
-#lang reader "reader.rkt"
+#lang citrus
 
+;; note - "\n" -> (#\ #n). should fix.
+(display (drop 1 "hello: ") (cons #\x61 `(1 ,|list 2 3 4 5)[1]) #\n)
 
-(display (drop 1 "hello: ") |cons #\x61 `(1 ,|list 2 3 4 5)[1])
+(define-syntax (test stx)
+  |datum->syntax stx '|display "hello")
+
+(test)
