@@ -19,22 +19,23 @@
 
 ;; we need to define:
 ;;  (lang <parser> <expander>)
-;;  (parser <grammar>)
 ;;  (expander <rule 1> ... <rule n>) and (rewrite <value> <expansion>)
-;;  (grammar <rule 1> ... <rule n>) and (rule <value> <expansion>)
+;;  (parser <rule 1> ... <rule n>) and (rule <value> <expansion>)
 ;; to allow the expander to have macro support, allow rewrite rules to produce new rewrite rules. reversability isn't required because the expanded forms are still valid, that's the point
 
 ;; in order to define
-;;  (parse <parser> <text>)
+;;  (parse <grammar> <text>)
 ;;  (expand <expander> <parse tree>)
 
 ;; it would also be nice to have
-;;  (unexpand <expander> <parse tree>)
-;;  (unparse <parser <parse tree>)
-;; which is why the expander is limited to rewrite rules - they can be (for out purposes as good as) perfectly reversed
+;;  (unparse <grammar> <parse tree>)
+;; generalised (unexpand) is implausible
 
 ;; parse
 ;; strategy: test each rule against the whole text to see if it could be a match, if all subrules were * (I think this can be done with regexs). recurse.
 ;; this assumes one rule can only parse a piece of text in one way, though
 ;; eh, just import regexp-match* to fix that
 ;; instead of a tokeniser, terminals are defined by allowing the rhs to be a regex (for the purposes of unparse we need to know that they're terminals though. maybe a distinct name, (production) and (terminal)?)
+
+
+  
