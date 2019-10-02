@@ -60,7 +60,7 @@
   (define dtm (syntax->datum stx))
   (define lang (second dtm))
   (define text (third dtm))
-  ;(write (first lang))
+  ;(write lang)
   ;(write
   (datum->syntax
     stx

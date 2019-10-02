@@ -3,5 +3,8 @@
 ;;;; Standard Library
 ;; here's the stuff we can define inside citrus
 
-(apply-lang `((λ (ast) `(write ,ast)) (grammar (production lst #( (* (or int lst))) (terminal int "[0-9]+")))
-            "(1(23(4(56")
+
+; this works if you swap #; for #:
+; probably something to do with apply-lang being a macro
+(apply-lang ((grammar (production lst #; (* (or int lst))) (terminal int "[0-9]+")) (λ (ast) (write ast)))
+            ";13;8")

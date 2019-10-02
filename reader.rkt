@@ -4,6 +4,7 @@
 (require "parser.rkt")
 
 (define (read-syntax path port)
+  ;;(define tok (make-tokeniser port))(define (test) (define t (tok)) (write t) (display "\n") (if (equal? t eof) 1 (test)))(test) ;; dump tokens for testing purposes
   (define parse-tree (parse path (make-tokeniser port)))
   (define module-datum `(module ct-mod citrus/expander
                         ,parse-tree))
@@ -24,12 +25,12 @@
         (token 'LANG-BLOCK-CONTENT (list->string (drop (drop-right (string->list lexeme) 5) 5)))]
        [(concatenation (union "-" "") (repetition 1 +inf.0 numeric) (union "" (concatenation "." (union "" (repetition 0 +inf.0 numeric)))))
         (token 'NUMBER lexeme)] ;; note to avoid possible future bugs - if the number case comes after the symbol one, -1 is matched as a symbol
-       [(concatenation "#" (repetition 0 +inf.0 (char-complement (char-set " \n\t)]"))))
-        (token 'CHAR lexeme)] ;; again, must come after symbol (unless we later decide to disallow # anywhere in a symbol name)
        [(concatenation (repetition 0 +inf.0 (char-complement (union (char-set "`',:|()[]{}\n\"\'\\") #\space)))
                          (char-complement (union (char-set "`',:0123456789|()[]{}\n\"\'\\") #\space))
                          (repetition 0 +inf.0 (char-complement (union (char-set "`',:|()[]{}\n\"\'\\") #\space))))
         (token 'SYMBOL lexeme)]
+       [(concatenation "#" (union (char-complement (char-set " \n\t")) "space" "newline" "tab"))
+        (token 'CHAR lexeme)] ;; again, must come after symbol (unless we later decide to disallow # anywhere in a symbol name)
        [(char-set "\n\t ")
         (token 'WHITESPACE lexeme)]
        [any-char lexeme]))
