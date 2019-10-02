@@ -59,6 +59,8 @@ rather than `(list-ref list index)`, citrus has `(ref index list)`. in general c
 
 `(write)`, `(display)` and `(print)` are modified to take any number of arguments to output and an optional #:out output port argument. they also return their arguments as a list, rather than #<void>
 
+`(parse grammar text)` takes a grammar created with `(grammar (production name element1 ... elementn)... (terminal name "regex"))` and parses text string into an AST. valid `element`s in production rules are characters, symbols that are the names of other rules, and special forms `(* element)`, `(or element1 ... elementn)`, `(? element1 ... elementn)` and quoted lists `'(element1 ... elementn)` - for instance, `(production example (or '(#a (? term1)) (* '(term2 term3))))` which matches either the character 'a' followed by term1 or any (>0) amount of repetitions of term2 followed by term3.
+
 Racket's `require` form is available in citrus. However, some things from racket don't work when loaded for a repl (ie. racket -f or in drracket) - for instance the gui system and probably web server - because once the main thread reaches the end it looks for #%top-interaction and crashes the whole program when it's not there. I don't want to provide #%top-interaction because the repls mentioned automatically use racket's read-syntax, rendering them useless for citrus.
 
 ## Roadmap
@@ -68,9 +70,9 @@ Racket's `require` form is available in citrus. However, some things from racket
     - includes write, print, display, printf, pretty much anything that gives output really
   - add contracts to definitions.rkt provisions
 - implement first-class language objects and (apply-lang)
-- working repl (default #%top-interaction uses racket syntax)
+- self-host using language tools
+- working repl (default #%top-interaction uses racket read-syntax)
 - type inference system, giving warnings only (by default, I guess there's no reason not to have a strict mode where it won't run at all if not type safe)
-- reimplement outside of racket? self-host?
 
 whenever:
 - optimise expander, in particular figure out which recursive (ct-module-special-form) calls aren't actually needed (like in (atom), probably)

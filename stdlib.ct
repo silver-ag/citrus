@@ -3,3 +3,5 @@
 ;;;; Standard Library
 ;; here's the stuff we can define inside citrus
 
+(apply-lang `((λ (ast) `(write ,ast)) (grammar (production lst #( (* (or int lst))) (terminal int "[0-9]+")))
+            "(1(23(4(56")

@@ -55,9 +55,27 @@
 ; -> 'hello (1 2 3)'
 ;; also for later, a grammar should be able to have an 'ignore-whitespace flag that makes parse remove all whitespace from the lexed source before continuing, so you don't have to deal with it in your grammar by hand.
 
+;; apply-lang
+(define-syntax (apply-lang stx)
+  (define dtm (syntax->datum stx))
+  (define lang (second dtm))
+  (define text (third dtm))
+  ;(write (first lang))
+  ;(write
+  (datum->syntax
+    stx
+    (append
+     `(let ([ns (make-base-namespace)]))
+     `((eval
+      '(module lang-run citrus/expander
+         (,(second lang) (parse ,(first lang) ,text)))
+      ns))
+     '((eval '(require 'lang-run) ns)))));)
+
+
 ;; parse and supporting functions
 (define (parse grammar text)
-  (define tokens (tokenise (second grammar) (open-input-string text)))
+  (define tokens (tokenise (second grammar) (open-input-string (list->string text))))
   (let-values ([(parse-result empty-tokens) (parse-next grammar tokens grammar)])
     parse-result))
 
@@ -113,7 +131,11 @@
                 (let-values ([(attempt-item attempt-tokens)
                               (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules result)])
                   (if attempt-item
-                      (values attempt-item attempt-tokens)
+                      (let-values ([(rest-item rest-tokens) 
+                                    (parse-with-rule (list (first rule) (rest (second rule))) attempt-tokens rules (rest attempt-item))])
+                        (if rest-item
+                            (values rest-item rest-tokens)
+                            (parse-with-rule (list (first rule) (cons (append (first (second rule)) (list (second (first (second rule))))) (rest (second rule)))) tokens rules result)))
                       (parse-with-rule (list (first rule) (cons (append (first (second rule)) (list (second (first (second rule))))) (rest (second rule)))) tokens rules result))))]
            [(or) ;; similarly, given ((or a b c) d) we try (a d) then (or b c) d)
             (if (eq? (length (first (second rule))) 1)
@@ -167,7 +189,7 @@
      ,(foldl
        (λ (rule g) (case (first rule)
                      [(production) (list (cons `(,(second rule) ,(drop rule 2)) (first g)) (second g))] ;; (production name part1 ... partn) -> (name (part1 ... partn)
-                     [(terminal) (list (first g) (cons `(,(second rule) ,(regexp (string-append "^" (third rule)))) (second g)))] ;; (terminal name "regex-string") -> (name #rx"^regex-string")
+                     [(terminal) (list (first g) (cons `(,(second rule) ,(regexp (string-append "^" (list->string (rest (third rule)))))) (second g)))] ;; (terminal name "regex-string") -> (name #rx"^regex-string")
                      [else (error (format "unrecognised rule type '~a' (must be terminal or production)" (first rule)))]))
        '(()())
        (rest dtm)))))
@@ -182,6 +204,8 @@
 ;   (terminal sym "[-a-zA-Z]+")))
 ;(parse test-grammar "(hello-world 1 (f 2) 3)")
 
+;; there may be a lingering bug in the parser
+;; I fixed one where * rules failed by matching lazily and then not trying again if the rest failed, but I haven't checked for analogous errors in other special rules
 
 ;; override racket definitions
 (provide (rename-out (ct-display display)
@@ -190,7 +214,14 @@
 
                      (ct-drop drop)))
 ;; things that aren't already defined
-(provide ref)       ;; this is used in the normalisation of (1 2 3)[n], be careful changing how it works
+(provide ref       ;; this is used in the normalisation of (1 2 3)[n], be careful changing how it works
+         apply-lang
+         parse
+         grammar
+         tokenise        ;- this stuff shouldn't be directly available, but has to be available to the parsed module. put in a module of their own?
+         next-token      ;
+         parse-next      ;
+         parse-with-rule);
 ;; things provided through from racket
 (provide list       ;;|
          begin      ;;|
