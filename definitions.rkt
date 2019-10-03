@@ -60,17 +60,16 @@
   (define dtm (syntax->datum stx))
   (define lang (second dtm))
   (define text (third dtm))
-  ;(write lang)
+  (write lang)
   ;(write
   (datum->syntax
     stx
-    (append
-     `(let ([ns (make-base-namespace)]))
-     `((eval
-      '(module lang-run citrus/expander
-         (,(second lang) (parse ,(first lang) ,text)))
-      ns))
-     '((eval '(require 'lang-run) ns)))));)
+;     (let ([ns (make-base-namespace)])
+;     (eval
+;      `(module lang-run citrus/expander ;; citrus/expander requires definitions.rkt, creating a loop?
+         `(,(second lang) (parse ,(first lang) ,text))) )
+;      ns))))
+     ;(eval '(require 'lang-run) ns))));)
 
 
 ;; parse and supporting functions
@@ -147,10 +146,10 @@
                       (parse-with-rule (list (first rule) (cons (cons 'or (drop (first (second rule)) 2)) (rest (second rule)))) tokens rules result))))]
            [(?) ;; ((? a b) c) -> (a b c), then (c)
             (let-values ([(attempt-item attempt-tokens)
-                          (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules result)])
+                          (parse-with-rule (list (first rule) (rest (second rule))) tokens rules result)])
               (if attempt-item
                   (values attempt-item attempt-tokens)
-                  (parse-with-rule (list (first rule) (rest (second rule))) tokens rules result)))]
+                  (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules result)))]
            [(quote) ;; literal list, given ((quote (a b)) c) try (a b c) only. for use in things like ((or '(a b) c) d)
             (parse-with-rule (list (first rule) (append (second (first (second rule))) (rest (second rule)))) tokens rules result)]
            [else (display (format "no such special grammar form: '~a' (accepts '*', 'or' and '?'): ~a" (first (first (second rule))) (second rule)))])]
@@ -206,6 +205,8 @@
 
 ;; there may be a lingering bug in the parser
 ;; I fixed one where * rules failed by matching lazily and then not trying again if the rest failed, but I haven't checked for analogous errors in other special rules
+;(apply-lang ((grammar (production lst (* (or int lst))) (terminal int (#\[ #\0 #\- #\9 #\] #\+))) (λ (ast) (write ast)))
+ ;           '(#\a #\1 #\3 #\a #\8))
 
 ;; override racket definitions
 (provide (rename-out (ct-display display)
