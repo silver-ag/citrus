@@ -10,9 +10,6 @@
 ; this is safe, although it fails to parse when it should
 (apply-lang ((grammar (production x a b (* a) b) (terminal b "b") (terminal a "a")) (λ (ast) (write ast)))
             "abaaab")
-; this isn't
-;(apply-lang ((grammar (production lst (* (or int lst))) (terminal int "[0-9]+")) (λ (ast) (write ast)))
-;            "a13a8")
 
 ;; can't parse if last element is a comment, so: (TODO)
 1

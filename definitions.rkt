@@ -84,7 +84,7 @@
       (values #f #f)]
     [(empty? tokens) (values result '())] ;; finished parse 
     [else
-     (let-values ([(attempt-item attempt-tokens) (parse-with-rule (first (first current-rules)) tokens all-rules)])
+     (let-values ([(attempt-item attempt-tokens) (parse-with-rule (first (first current-rules)) tokens all-rules (* (length tokens) (length (append (first all-rules) (second all-rules)))))])
        (define-values (backtrack-item backtrack-tokens)
          (if attempt-item
              (parse-next all-rules attempt-tokens all-rules (append result (list attempt-item)))
@@ -93,34 +93,36 @@
            (values backtrack-item backtrack-tokens)
            (parse-next (list (rest (first current-rules)) (second current-rules)) tokens all-rules result)))]))
 
-(define (parse-with-rule rule tokens rules (result '()))
+(define (parse-with-rule rule tokens rules depth (result '()))
   (if (empty? (second rule))
       (values ;; pass back lazy parse and remaining tokens
        (cons (first rule) result)
        tokens)
       (cond
+        [(< depth 0)
+         (values #f #f)]
         [(empty? tokens)
          (if (and (list? (first (second rule))) (equal? (first (first (second rule))) '?))
-             (parse-with-rule (list (first rule) (rest (second rule))) tokens rules result)
+             (parse-with-rule (list (first rule) (rest (second rule))) tokens rules (- depth 1) result)
              (values #f #f))]
         [(symbol? (first (second rule)))
          (cond
            [(member (first (second rule)) (second rules) (λ (x y) (equal? x (first y)))) ;; terminal
             (if (and (list? (first tokens)) (equal? (first (first tokens)) (first (second rule))))
-                (parse-with-rule (list (first rule) (rest (second rule))) (rest tokens) rules (append result (list (first tokens))))
+                (parse-with-rule (list (first rule) (rest (second rule))) (rest tokens) rules (- depth 1) (append result (list (first tokens))))
                 (values #f #f))]
            [(member (first (second rule)) (first rules) (λ (x y) (equal? x (first y)))) ;; production
-            (define-values (item-next tokens-next) (parse-with-rule (first (member (first (second rule)) (first rules) (λ (x y) (equal? x (first y))))) tokens rules))
+            (define-values (item-next tokens-next) (parse-with-rule (first (member (first (second rule)) (first rules) (λ (x y) (equal? x (first y))))) tokens rules (- depth 1)))
             ;(parse-next rules tokens rules))
             (cond
               [(not item-next) (values #f #f)]
               [(equal? (first (second rule)) (first item-next))
-               (parse-with-rule (list (first rule) (rest (second rule))) tokens-next rules (append result (list item-next)))] )]
+               (parse-with-rule (list (first rule) (rest (second rule))) tokens-next rules (- depth 1) (append result (list item-next)))] )]
 ;              [else (values #f #f)])]
            [else (error (format "parse error: unrecognised rule '~a': ~a" (first (second rule)) rule))])]
         [(char? (first (second rule)))
          (if (eq? (first (second rule)) (first tokens))
-             (parse-with-rule (list (first rule) (rest (second rule))) (rest tokens) rules (append result (list (first tokens))))
+             (parse-with-rule (list (first rule) (rest (second rule))) (rest tokens) rules (- depth 1) (append result (list (first tokens))))
              (values #f #f))]
         [(list? (first (second rule))) ;; special rule (* ...) or (or ...)
          (case (first (first (second rule)))
@@ -128,42 +130,32 @@
             (if (> (- (length (first (second rule))) 1) (length tokens)) ;; -1 to count the '*'
                 (values #f #f)
                 (let-values ([(attempt-item attempt-tokens)
-                              (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules result)])
+                              (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules (- depth 1) result)])
                   (if attempt-item
                       (let-values ([(rest-item rest-tokens) 
-                                    (parse-with-rule (list (first rule) (rest (second rule))) attempt-tokens rules (rest attempt-item))])
+                                    (parse-with-rule (list (first rule) (rest (second rule))) attempt-tokens rules (- depth 1) (rest attempt-item))])
                         (if rest-item
                             (values rest-item rest-tokens)
-                            (parse-with-rule (list (first rule) (cons (append (first (second rule)) (list (second (first (second rule))))) (rest (second rule)))) tokens rules result)))
-                      (parse-with-rule (list (first rule) (cons (append (first (second rule)) (list (second (first (second rule))))) (rest (second rule)))) tokens rules result))))]
+                            (parse-with-rule (list (first rule) (cons (append (first (second rule)) (list (second (first (second rule))))) (rest (second rule)))) tokens rules (- depth 1) result)))
+                      (parse-with-rule (list (first rule) (cons (append (first (second rule)) (list (second (first (second rule))))) (rest (second rule)))) tokens rules (- depth 1) result))))]
            [(or) ;; similarly, given ((or a b c) d) we try (a d) then (or b c) d)
             (if (eq? (length (first (second rule))) 1)
                 (values #f #f) ;; no more options
                 (let-values ([(attempt-item attempt-tokens)
-                              (parse-with-rule (list (first rule) (cons (second (first (second rule))) (rest (second rule)))) tokens rules result)])
+                              (parse-with-rule (list (first rule) (cons (second (first (second rule))) (rest (second rule)))) tokens rules (- depth 1) result)])
                   (if attempt-item
                       (values attempt-item attempt-tokens)
-                      (parse-with-rule (list (first rule) (cons (cons 'or (drop (first (second rule)) 2)) (rest (second rule)))) tokens rules result))))]
+                      (parse-with-rule (list (first rule) (cons (cons 'or (drop (first (second rule)) 2)) (rest (second rule)))) tokens rules (- depth 1) result))))]
            [(?) ;; ((? a b) c) -> (a b c), then (c)
             (let-values ([(attempt-item attempt-tokens)
-                          (parse-with-rule (list (first rule) (rest (second rule))) tokens rules result)])
+                          (parse-with-rule (list (first rule) (rest (second rule))) tokens rules (- depth 1) result)])
               (if attempt-item
                   (values attempt-item attempt-tokens)
-                  (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules result)))]
+                  (parse-with-rule (list (first rule) (append (rest (first (second rule))) (rest (second rule)))) tokens rules (- depth 1) result)))]
            [(quote) ;; literal list, given ((quote (a b)) c) try (a b c) only. for use in things like ((or '(a b) c) d)
-            (parse-with-rule (list (first rule) (append (second (first (second rule))) (rest (second rule)))) tokens rules result)]
+            (parse-with-rule (list (first rule) (append (second (first (second rule))) (rest (second rule)))) tokens rules (- depth 1) result)]
            [else (display (format "no such special grammar form: '~a' (accepts '*', 'or' and '?'): ~a" (first (first (second rule))) (second rule)))])]
         [else (display "shouldn't happen")])))
-
-(define (parse-with-rule-* rule tokens rules (result '()))
-  (define-values (attempt-item attempt-tokens)
-    (parse-with-rule rule tokens rules result))
-  (if attempt-item
-      (let-values ([(cont-item cont-tokens) (parse-with-rule rule attempt-tokens rules (append result (list attempt-item)))])
-        (if cont-item
-            (values cont-item cont-tokens)
-            (parse-with-rule-* rule attempt-tokens rules (append result (list attempt-item)))))
-      (values #f #f)))
 
 ;; tokeniser - be aware that order of terminals matters!
 (define (tokenise terminals text-port (result '()))
@@ -207,6 +199,7 @@
 ;; I fixed one where * rules failed by matching lazily and then not trying again if the rest failed, but I haven't checked for analogous errors in other special rules
 ;(apply-lang ((grammar (production lst (* (or int lst))) (terminal int (#\[ #\0 #\- #\9 #\] #\+))) (λ (ast) (write ast)))
  ;           '(#\a #\1 #\3 #\a #\8))
+
 
 ;; override racket definitions
 (provide (rename-out (ct-display display)
